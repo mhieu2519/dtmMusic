@@ -1,5 +1,4 @@
 const { MessageFlags } = require('discord.js');
-const { flat } = require('../../dtmbot/shops/hiddenItems');
 async function handleQueue(interaction, player) {
     const queue = player.nodes.get(interaction.guild.id);
 
