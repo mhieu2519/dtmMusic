@@ -57,7 +57,8 @@ player.extractors.register(SpotifyExtractor, {
 const { useMainPlayer } = require('discord-player');
 
 // Gắn play-dl vào hàm onBeforeCreateStream
-player.extractors.loadDefault(); // Load tất cả các extractor chính thức
+import { DefaultExtractors } from '@discord-player/extractor';
+await player.extractors.loadMulti(DefaultExtractors);
 
 player.events.on('playerStart', (queue, track) => {
   console.log(`▶️ Bắt đầu phát: ${track.title}`);
