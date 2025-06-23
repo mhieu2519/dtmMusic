@@ -234,7 +234,6 @@ bot.on("interactionCreate", async (interaction) => {
 
 bot.once("ready", async () => {
 console.log("✅ Bot is now online!");
-scheduleMessages(bot);
 
 });
 
