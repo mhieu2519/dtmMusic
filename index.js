@@ -48,8 +48,8 @@ const player = new Player(bot,{
 //player.extractors.register(YoutubeiExtractor, {});
 
 // Đăng ký play-dl extractor
-player.extractors.register(playdl.generateExtractor(), {});
-
+//player.extractors.register(playdl.generateExtractor(), {});
+player.use(playdl); // CHỈ THÊM DÒNG NÀYs
 // SpotifyExtractor cho Spotify
 player.extractors.register(SpotifyExtractor, {
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -179,6 +179,11 @@ bot.on("interactionCreate", async (interaction) => {
     }}});
 
 
+bot.once("ready", async () => {
+console.log("✅ Bot is now online!");
+scheduleMessages(bot);
+
+});
 
 
 keepAlive()
