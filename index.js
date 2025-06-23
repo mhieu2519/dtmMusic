@@ -18,7 +18,6 @@ const bot = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.GuildMembers,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildVoiceStates, // Để xử lý âm thanh
   ],
@@ -29,6 +28,7 @@ const { Player } = require('discord-player');
 const { YoutubeiExtractor } = require('discord-player-youtubei'); // Import YoutubeiExtractor
 const { SpotifyExtractor } = require('@discord-player/extractor'); // Import SpotifyExtractor
 const ffmpegPath = require('ffmpeg-static'); // Import ffmpeg-static
+const playdl = require("play-dl");
 // Cấu hình Discord Player
 const player = new Player(bot,{
     ytdlOptions: {
@@ -45,7 +45,7 @@ const player = new Player(bot,{
  player.options.ffmpeg = { ffmpegPath: ffmpegPath };
 // Đăng ký các extractor
 // YoutubeiExtractor cho YouTube (thay thế YoutubeExtractor cũ)
-player.extractors.register(YoutubeiExtractor, {});
+//player.extractors.register(YoutubeiExtractor, {});
 
 // SpotifyExtractor cho Spotify
 player.extractors.register(SpotifyExtractor, {
@@ -53,6 +53,30 @@ player.extractors.register(SpotifyExtractor, {
     client_secret: process.env.SPOTIFY_CLIENT_SECRET,
     // Bạn có thể thêm các tùy chọn khác nếu cần, ví dụ: concurrency
 });
+
+const { useMainPlayer } = require('discord-player');
+
+// Gắn play-dl vào hàm onBeforeCreateStream
+player.extractors.loadDefault(); // Load tất cả các extractor chính thức
+
+player.events.on('playerStart', (queue, track) => {
+  console.log(`▶️ Bắt đầu phát: ${track.title}`);
+});
+
+player.on('playerStart', (queue, track) => {
+  console.log(`🎵 Now playing: ${track.title}`);
+});
+
+// Gắn `play-dl` vào onBeforeCreateStream
+player.on('onBeforeCreateStream', async (track, source, _queue) => {
+  if (track.source === 'youtube') {
+    const stream = await playdl.stream(track.url, {
+      quality: 2, // chất lượng cao
+    });
+    return stream.stream;
+  }
+});
+
 
 console.log("✅ FFmpeg static path:", ffmpegPath);
 // --- Xử lý các sự kiện của Discord Player ---
