@@ -47,6 +47,9 @@ const player = new Player(bot,{
 // YoutubeiExtractor cho YouTube (thay thế YoutubeExtractor cũ)
 //player.extractors.register(YoutubeiExtractor, {});
 
+// Đăng ký play-dl extractor
+player.extractors.register(playdl.generateExtractor(), {});
+
 // SpotifyExtractor cho Spotify
 player.extractors.register(SpotifyExtractor, {
     client_id: process.env.SPOTIFY_CLIENT_ID,
@@ -57,8 +60,8 @@ player.extractors.register(SpotifyExtractor, {
 const { useMainPlayer } = require('discord-player');
 
 // Gắn play-dl vào hàm onBeforeCreateStream
-const { DefaultExtractors } = require('@discord-player/extractor');
- player.extractors.loadMulti(DefaultExtractors);
+//const { DefaultExtractors } = require('@discord-player/extractor');
+ //player.extractors.loadMulti(DefaultExtractors);
 
 player.events.on('playerStart', (queue, track) => {
   console.log(`▶️ Bắt đầu phát: ${track.title}`);
