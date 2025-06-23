@@ -49,7 +49,60 @@ const player = new Player(bot,{
 
 // Đăng ký play-dl extractor
 //player.extractors.register(playdl.generateExtractor(), {});
-player.use(playdl); // CHỈ THÊM DÒNG NÀYs
+//player.use(playdl); // CHỈ THÊM DÒNG NÀYs
+
+// Đăng ký play-dl như một extractor thông thường
+player.extractors.register({
+    name: 'play-dl-custom', // Đặt một tên duy nhất
+    async search(query, context) {
+        try {
+            // Kiểm tra nếu query là một URL được play-dl hỗ trợ
+            if (playdl.yt_validate(query.query) === 'video' || playdl.yt_validate(query.query) === 'playlist' || playdl.sp_validate(query.query) === 'track' || playdl.sp_validate(query.query) === 'album' || playdl.sp_validate(query.query) === 'playlist') {
+                const data = await playdl.search(query.query, {
+                    limit: 1, // Chỉ lấy 1 kết quả cho video/track đơn
+                    source: { youtube: 1, spotify: 1 } // Tìm kiếm trên cả YouTube và Spotify
+                });
+                return {
+                    tracks: data.map(result => player.createTrack(result, context.data)),
+                    playlist: data[0]?.type === 'playlist' ? player.createPlaylist(data[0], context.data) : null
+                };
+            }
+
+            // Nếu không phải URL, thử tìm kiếm chung trên YouTube
+            const data = await playdl.search(query.query, {
+                limit: 1,
+                type: 'video' // Mặc định tìm kiếm video YouTube
+            });
+            return {
+                tracks: data.map(result => player.createTrack(result, context.data)),
+                playlist: null
+            };
+        } catch (error) {
+            console.error(`Lỗi trong play-dl search extractor: ${error.message}`);
+            return { tracks: [], playlist: null };
+        }
+    },
+    async stream(track, context) {
+        try {
+            // Đảm bảo rằng track.url không phải là một URL rỗng hoặc không hợp lệ
+            if (!track.url) throw new Error('Track URL is missing.');
+            const stream = await playdl.stream(track.url);
+            return stream.stream; // play-dl.stream trả về một object, ta cần thuộc tính stream
+        } catch (error) {
+            console.error(`Lỗi trong play-dl stream extractor cho track ${track.title}: ${error.message}`);
+            throw new Error(`Không thể tạo stream cho bài hát này: ${error.message}`);
+        }
+    },
+    validate: (query) => {
+        // Xác nhận rằng extractor này có thể xử lý query
+        return true; // Để nó luôn cố gắng xử lý các query
+        // Hoặc kiểm tra cụ thể hơn nếu muốn:
+        // return playdl.yt_validate(query) === 'video' || playdl.sp_validate(query) === 'track';
+    }
+}, {
+    priority: 1 // Đặt ưu tiên cao nhất cho extractor này
+});
+// Đăng ký YoutubeiExtractor cho YouTube
 // SpotifyExtractor cho Spotify
 player.extractors.register(SpotifyExtractor, {
     client_id: process.env.SPOTIFY_CLIENT_ID,
